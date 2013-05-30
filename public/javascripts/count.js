@@ -4,7 +4,7 @@ var app = express();
 var cont=0;
 exports.count_mw = (function(req, res, next) {
 
-if (req.url == '/'){
+if (req.url == '/' && req.client.parser.incoming.secret == undefined){
 
 cont++;
 req.number = cont;
