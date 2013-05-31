@@ -11,15 +11,25 @@
 <body>
    <header>
       <h1> ¡Bienvenido al Blog de Software de Comunicaciones!</h1>
+
+
+
+
+
       <nav>
          <a href="/">Home</a>
          <a href="/Posts">Posts</a>
          <a href="/info">Acerca de</a>
-         
-         <form method='get' action='/posts/search' id='derecha'>
-            <input type="text" name="search"/>
-            <input name="commit" type="submit" value="Buscar" />
-         </form>
+        <div id='logininfo'>
+           <% if (session.user) { %>
+               <%= session.user.name %>
+               <a href='/logout'> Logout </a>
+           <% } else { %>
+              <a href='/login?redir=/posts'> Login </a>
+              <a href='/users/new'> Register </a>
+           <% } %>
+      </div>
+        
        </nav>
    </header>
  
@@ -62,6 +72,10 @@
 
    <section>
       <hr />
+       <form method='get' action='/posts/search' id='derecha'>
+            <input type="text" name="search"/>
+            <input name="commit" type="submit" value="Buscar" />
+         </form>
           <%- body %>
       <hr />
    </section>

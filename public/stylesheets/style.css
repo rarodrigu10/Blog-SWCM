@@ -21,6 +21,12 @@ width: 40%; height: 40%;
 float:right;
     clear:both;
 }
+
+#logininfo{
+float:right;
+    clear:both;
+}
+
 #texto_exp {
 
   color:#0C7BA1;

@@ -11,8 +11,9 @@ exports.load = function(req, res, next, id) {
         .success(function(post) {
             if (post) {
                 req.post = post;
-                next();
+next();
             } else {
+req.flash('error', 'No existe el post con id='+id+'.');
                 next('No existe el post con id='+id+'.');
             }
         })
@@ -22,6 +23,23 @@ exports.load = function(req, res, next, id) {
 };
 
 
+
+/*
+* Comprueba que el usuario logeado es el author.
+*/
+exports.loggedUserIsAuthor = function(req, res, next) {
+    
+    if (req.session.user && req.session.user.id == req.post.authorId) {
+next();
+    } else {
+console.log('Operación prohibida: El usuario logeado no es el autor del post.');
+res.send(403);
+    }
+};
+
+
+//-----------------------------------------------------------
+
 // GET /posts
 exports.index = function(req, res, next) {
 
@@ -29,8 +47,13 @@ exports.index = function(req, res, next) {
     format = format.toLowerCase();
 
     models.Post
-        .findAll({order: 'updatedAt DESC'})
+        .findAll({order: 'updatedAt DESC',
+include: [ { model: models.User, as: 'Author' } ]
+})
         .success(function(posts) {
+
+          console.log(posts);
+          
             switch (format) {
               case 'html':
               case 'htm':
@@ -55,10 +78,7 @@ exports.index = function(req, res, next) {
             }
         })
         .error(function(error) {
-          
             next(error);
-            // console.log("Error: No puedo listar los posts.");
-            // res.redirect('/');
         });
 };
 
@@ -92,27 +112,58 @@ function posts_to_xml(posts) {
 
 // GET /posts/33
 exports.show = function(req, res, next) {
-var format = req.params.format || 'html';
-    format = format.toLowerCase();
+ // Buscar el autor
+    models.User
+        .find({where: {id: req.post.authorId}})
+        .success(function(user) {
 
-    switch (format) {
-      case 'html':
-      case 'htm':
-          res.render('posts/show', { post: req.post });
-          break;
-      case 'json':
-          res.send(req.post);
-          break;
-      case 'xml':
-             res.send(post_to_xml(req.post));
-          break;
-      case 'txt':
-          res.send(req.post.title+' ('+req.post.body+')');
-          break;
-      default:
-          console.log('No se soporta el formato \".'+format+'\" pedido para \"'+req.url+'\".');
-          res.send(406);
-    }
+            // Si encuentro al autor lo añado como el atributo author, sino añado {}.
+            req.post.author = user || {};
+
+            // Buscar comentarios
+            models.Comment
+                 .findAll({where: {postId: req.post.id},
+                           order: 'updatedAt DESC',
+                           include: [ { model: models.User, as: 'Author' } ]
+                 })
+                 .success(function(comments) {
+
+                    var format = req.params.format || 'html';
+                    format = format.toLowerCase();
+
+                    switch (format) {
+                      case 'html':
+                      case 'htm':
+                          var new_comment = models.Comment.build({
+                              body: 'Introduzca el texto del comentario'
+                          });
+                          res.render('posts/show', {
+                              post: req.post,
+                              comments: comments,
+                              comment: new_comment
+                          });
+                          break;
+                      case 'json':
+                          res.send(req.post);
+                          break;
+                      case 'xml':
+                          res.send(post_to_xml(req.post));
+                          break;
+                      case 'txt':
+                          res.send(req.post.title+' ('+req.post.body+')');
+                          break;
+                      default:
+                          console.log('No se soporta el formato \".'+format+'\" pedido para \"'+req.url+'\".');
+                          res.send(406);
+                    }
+                 })
+                 .error(function(error) {
+                     next(error);
+                  });
+        })
+        .error(function(error) {
+            next(error);
+        });
 };
 
 function post_to_xml(post) {
@@ -162,28 +213,29 @@ exports.create = function(req, res, next) {
     var post = models.Post.build(
         { title: req.body.post.title,
           body: req.body.post.body,
-          authorId: 0
+          authorId: req.session.user.id
         });
     
     var validate_errors = post.validate();
     if (validate_errors) {
-        console.log("Errores de validacion:", validate_errors);
-        
-        req.flash('error', "Los datos del formulario son incorrectos");
-        for(var err in validate_errors){
-          req.flash('error', validate_errors[err]);
+        console.log("Errores de validación:", validate_errors);
+
+        req.flash('error', 'Los datos del formulario son incorrectos.');
+        for (var err in validate_errors) {
+           req.flash('error', validate_errors[err]);
         };
-        res.render('posts/new', {post: post, validate_errors: validate_errors});
+
+        res.render('posts/new', {post: post,
+                                 validate_errors: validate_errors});
         return;
     }
     
     post.save()
         .success(function() {
-            req.flash('success', "Tu post ha sido creado con éxito");
+            req.flash('success', 'Post creado con éxito.');
             res.redirect('/posts');
         })
         .error(function(error) {
-            // console.log("Error: No puedo crear el post:", error);
             next(error);
         });
 };
@@ -202,20 +254,20 @@ exports.update = function(req, res, next) {
                 
     var validate_errors = req.post.validate();
     if (validate_errors) {
-        console.log("Errores de validacion:", validate_errors);
-        
-        req.flash('error', "Los datos del formulario son incorrectos. ");
-        for(var err in validate_errors){
+        console.log("Errores de validación:", validate_errors);
 
-          req.flash('error', validate_errors[err]);
+        req.flash('error', 'Los datos del formulario son incorrectos.');
+        for (var err in validate_errors) {
+            req.flash('error', validate_errors[err]);
         };
 
-        res.render('posts/edit', {post: req.post, validate_errors: validate_errors});
+        res.render('posts/edit', {post: req.post,
+                                  validate_errors: validate_errors});
         return;
     }
     req.post.save(['title', 'body'])
         .success(function() {
-            req.flash('success', "Post actualizado");
+            req.flash('success', 'Post actualizado con éxito.');
             res.redirect('/posts');
         })
         .error(function(error) {
@@ -225,16 +277,33 @@ exports.update = function(req, res, next) {
 
 // DELETE /posts/33
 exports.destroy = function(req, res, next) {
+var Sequelize = require('sequelize');
+    var chainer = new Sequelize.Utils.QueryChainer
 
-    req.post.destroy()
-        .success(function() {
-            req.flash('success', "Post eliminado");
-            res.redirect('/posts');
-        })
-        .error(function(error) {
+    // Obtener los comentarios
+    req.post.getComments()
+       .success(function(comments) {
+           for (var i in comments) {
+                // Eliminar un comentario
+                chainer.add(comments[i].destroy());
+           }
 
-            next(error);
-        });
+           // Eliminar el post
+           chainer.add(req.post.destroy());
+
+           // Ejecutar el chainer
+           chainer.run()
+            .success(function(){
+                 req.flash('success', 'Post (y sus comentarios) eliminado con éxito.');
+                 res.redirect('/posts');
+            })
+            .error(function(errors){
+                next(errors[0]);
+            })
+       })
+       .error(function(error) {
+           next(error);
+       });
 };
 
 exports.search = function(req, res, next) {
