@@ -14,6 +14,8 @@ var postController = require('./routes/post_controller.js');
 var partials = require('express-partials');
 var contador = require('./public/javascripts/count');
 
+var util = require('util');
+
 var app = express();
 app.use(partials());
 app.use(contador.count_mw);
@@ -34,9 +36,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 });
 
 
-app.configure('development', function(){
-  app.use(express.errorHandler());
+app.use(function(err, req, res, next) {
+
+  if (util.isError(err)) {
+     next(err);
+  } else {
+     console.log(err);
+     res.redirect('/');
+  }
 });
+
+
+if ('development' == app.get('env')) {
+   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+} else {
+   app.use(express.errorHandler());
+}
 
 
 // Helper estatico:
@@ -55,6 +70,10 @@ app.get('/users', user.list);
 app.get('/info', informacion.ver);
 
 // ---------------------------------------------
+
+app.param('postid', postController.load);
+
+
 app.get('/posts.:format?', postController.index);
 app.get('/posts/new', postController.new);
 app.get('/posts/:postid([0-9]+).:format?', postController.show);
