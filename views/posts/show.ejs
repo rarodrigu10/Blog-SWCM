@@ -6,7 +6,10 @@
   <b><%= post.title %></b>
   <br />
   <em><%= post.author && post.author.name || 'Sin autor' %></em>
+
 </p>
+
+
 
 <p>
   <%= post.updatedAt.toLocaleDateString() %>
@@ -20,7 +23,11 @@
 
 </article>
 
+
 <hr />
+<p>
+	Número de comentarios: <%= comments.length %>
+</p>
 <%- include ../comments/index.ejs %>
 <hr />
 

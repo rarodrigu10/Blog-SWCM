@@ -133,8 +133,7 @@ commentController.loggedUserIsAuthor,
 commentController.destroy);
 
 // Comentarios Huerfanos
-app.get('/orphancomments',
-  commentController.orphans);
+app.get('/orphancomments', commentController.orphans);
 
 //---------------------
 

@@ -48,8 +48,9 @@ exports.index = function(req, res, next) {
 
     models.Post
         .findAll({order: 'updatedAt DESC',
-include: [ { model: models.User, as: 'Author' } ]
-})
+        include: [ { model: models.User, as: 'Author' },
+        { model: models.Comment, as: 'Comments' } ]
+  })
         .success(function(posts) {
 
           console.log(posts);
@@ -124,7 +125,8 @@ exports.show = function(req, res, next) {
             models.Comment
                  .findAll({where: {postId: req.post.id},
                            order: 'updatedAt DESC',
-                           include: [ { model: models.User, as: 'Author' } ]
+                           include: [ { model: models.User, as: 'Author' }
+                            ]
                  })
                  .success(function(comments) {
 
