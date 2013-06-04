@@ -317,7 +317,8 @@ var Sequelize = require('sequelize');
                 chainer.add(comments[i].destroy());
            }
 
-           req.post.getFavourites()
+           models.Favourite
+              .findAll({where: {postId:req.post.id}})
               .success(function(favourites) {
                   for (var i in comments) {
                       chainer.add(favourites[i].destroy());
