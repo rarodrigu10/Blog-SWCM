@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="utf-8">
+
+   <link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+
+   <title>SWCM Blog</title>
+
+   <link rel="stylesheet" type="text/css" href="/stylesheets/style.css">
+   <link rel="stylesheet" type="text/css" href="/stylesheets/bootstrap.min.css">
+
+   <script src="http://code.jquery.com/jquery.min.js"></script>
+   <script src="/js/bootstrap.min.js"></script>
+
+   <script src="/js/misc.js"></script>
+
+
+</head>
+
+<body>
+   <header>
+      <h1> ¡Bienvenido al Blog de Software de Comunicaciones!</h1>
+
+
+
+
+
+      <nav>
+         <a href="/">Home</a>
+         <a href="/Posts">Posts</a>
+         <a href="/users">Usuarios</a>
+
+         <% if (session.user) { %>
+            <a href="/users/<%= session.user.id%>/favourites">Mis favoritos</a>
+         <% } else { %>
+         <% } %>
+         <a href="/info">Acerca de</a>
+
+
+
+        <div id='logininfo'>
+           <% if (session.user) { %>
+               <%= session.user.name %>
+               <a href='/logout'> Logout </a>
+           <% } else { %>
+              <a href='/login?redir=/posts'> Login </a>
+              <a href='/users/new'> Register </a>
+           <% } %>
+      </div>
+
+       </nav>
+   </header>
+ 
+<section>
+        <% var flash = flash() %>
+        <% if (flash.info) { %>
+           <article id='flashinfo'>
+             <h3>Información de interés:</h3>
+             <ul>
+                <% for (var i in flash.info) { %>
+                  <li> <%= flash.info[i] %> </li>
+                <% } %>
+             </ul>
+           </article>
+        <% } %>
+
+        <% if (flash.success) { %>
+           <article id='flashsuccess'>
+             <h3>Tareas completadas con éxito:</h3>
+             <ul>
+                <% for (var i in flash.success) { %>
+                   <li> <%= flash.success[i] %> </li>
+                <% } %>
+             </ul>
+           </article>
+        <% } %>
+
+        <% if (flash.error) { %>
+           <article id='flasherror'>
+             <h3>Errores encontrados:</h3>
+             <ul>
+                <% for (var i in flash.error) { %>
+                  <li> <%= flash.error[i] %> </li>
+                <% } %>
+             </ul>
+           </article>
+        <% } %>
+  </section>
+
+
+   <section>
+      <hr />
+       <form method='get' action='/posts/search' id='derecha'>
+            <input type="text" name="search"/>
+            <input name="commit" type="submit" value="Buscar" />
+         </form>
+          <%- body %>
+      <hr />
+   </section>
+
+   <footer>
+      <p> Universidad Politécnica de Madrid. Curso 2012-2013. </p>
+      <p> Para más información accede al moodle de la asignatura
+      <a href="https://moodle.lab.dit.upm.es/moodle/">Software de Comunicaciones</a></p>
+  </footer>
+</body>
+</html>

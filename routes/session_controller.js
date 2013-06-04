@@ -46,7 +46,7 @@ var datenow = Date.now();
 if(req.session != undefined && req.session.user && req.session.user.time) {
 
 
-if(req.session.user.time +5000 < datenow) {
+if(req.session.user.time +60000 < datenow) {
     req.flash('info', 'Su sesión ha expirado');
 delete req.session.user;
 

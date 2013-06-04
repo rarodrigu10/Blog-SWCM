@@ -1,11 +1,55 @@
+
+
 <h2>Post</h2>
 
 <article>
 
 <p>
-  <b><%= post.title %></b>
+  <h3><b><%= post.title %>
+    <br />
+   <small>por <em><%= post.author && post.author.name || 'Sin autor' %></em> </small></h3>
+     <% var favorito=false%> 
+     <% if(session.user) {%>
+
+     <div class="post">
+<div class="page-header">
+
+      <% for (var j in post.favourites){ %>
+
+                <% if (post.favourites[j].userId == session.user.id && post.favourites[j].postId == post.id) {%>
+                   
+                       <% favorito=true%> 
+                <% } %>
+            <% } %>
+
+       <% if(favorito) {%>
+
+          <form  method='post' action='/users/<%= session.user.id %>/favourites/<%= post.id %>' >
+
+                <input type='hidden' name='_method' value='delete'>
+                   
+                <input type="image" src="/images/on.png"
+                    onclick="this.form._method.value='delete'; this.form.submit()" />
+
+        <% } else {%>
+
+           <form   method='post' action='/users/<%= session.user.id %>/favourites/<%= post.id %>' >
+
+                <input type='hidden' name='_method' value='put'>
+                
+                <input type="image" src="/images/off.png" onclick="this.favorito=true; this.form.submit()" />
+
+           </form>
+
+              </div>
+
+        <% } %>
+     <% } %>
+
+
+  </b>
   <br />
-  <em><%= post.author && post.author.name || 'Sin autor' %></em>
+
 
 </p>
 
@@ -23,6 +67,8 @@
 
 </article>
 
+<hr />
+<%- include ../attachments/index.ejs %>
 
 <hr />
 <p>

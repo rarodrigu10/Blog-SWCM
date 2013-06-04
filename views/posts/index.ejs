@@ -3,21 +3,66 @@
 </header>
 
 <% for (var i in posts) { %>
+
+
+   <div class="post">
+    <div class="page-header">
   <article>
      <header>
         <h3>
           <a href='/posts/<%= posts[i].id %>' class='titlelink'> <%= posts[i].title %> </a>
-        </h3>
-        <em> <%= posts[i].author && posts[i].author.name || "Sin autor" %> </em>
+        <br />
+  
+     <small><em>por <%= posts[i].author && posts[i].author.name || "Sin autor" %> </em></small></h3>
+        <% var favorito=false%> 
+
+        <% if (session.user) {%> 
+
+            <% for (var j in posts[i].favourites){ %>
+
+                <% if (posts[i].favourites[j].userId == session.user.id && posts[i].favourites[j].postId == posts[i].id) {%>
+                   
+                       <% favorito=true%> 
+                <% } %>
+            <% } %>
+
+            <% if (favorito) {%>
+
+              <form  method='post' action='/users/<%= session.user.id %>/favourites/<%= posts[i].id %>' >
+                   
+                   <input type='hidden' name='_method' value='delete'>
+                   
+                   <input type="image" src="/images/on.png"
+                    onclick="this.form._method.value='delete'; this.form.submit()" />
+              </form>
+                          
+            <% } else { %>
+                
+                <form   method='post' action='/users/<%= session.user.id %>/favourites/<%= posts[i].id %>' >
+
+                    <input type='hidden' name='_method' value='put'>
+                    
+                    <input type="image" src="/images/off.png" onclick="this.favorito=true; this.form.submit()" />
+                </form>
+
+            <% } %>
+        
+        <% } %>
+
+    
      </header>
      
      <p>
         <%= posts[i].body.slice(0,300) %> ...
      </p>
 
+
+
      <p>
-      Número de Comentarios <%= posts[i].comments.length %>
-      </p>
+        Número de Comentarios <%= posts[i].comments.length %>
+     </p>
+
+
 
      <footer>
 
@@ -30,6 +75,8 @@
         </form>
 
       <% } %>
+
+      </div> </div>
 
      </footer>
   </article>
